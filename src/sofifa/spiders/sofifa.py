@@ -1,18 +1,16 @@
 import scrapy
-from .utils import PLAYERS_BASE_URL, YEAR_KEYS, clean_string
+from .utils import *
 
 
 class SofifaSpider(scrapy.Spider):
     name = "sofifa"
     allowed_domains = ["sofifa.com"]
 
-    def __init__(self, year="14"):
+    def __init__(self, year="14", remap_columns="True"):
         self.year = year
+        self.remap_columns = remap_columns.lower() in ("true", "yes", "y", "1")
         self.start_urls = [self.__build_request_url()]
         self.logger.info(f"Scraping year {YEAR_KEYS[year]}")
-
-    def set_year(self, year: int):
-        self.year = year
 
     def __build_request_url(self) -> str:
         return f"{PLAYERS_BASE_URL}&r={YEAR_KEYS[self.year]}"
@@ -28,6 +26,9 @@ class SofifaSpider(scrapy.Spider):
     def parse(self, response):
         props_headers = response.css("table thead tr th ::text").extract()[7:]
         props_headers = list(map(clean_string, [_ for _ in props_headers]))
+
+        if self.remap_columns:
+            props_headers = rename_columns(props_headers)
 
         for player in response.css("table.table > tbody > tr"):
             item = {
