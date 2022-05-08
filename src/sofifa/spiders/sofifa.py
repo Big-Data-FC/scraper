@@ -56,5 +56,4 @@ class SofifaSpider(scrapy.Spider):
 
         for next_page in response.css(".pagination a::attr(href)"):
             offset = next_page.get().split("offset=")[1]
-            self.logger.info(f"Following next page. Offset: {offset}")
             yield response.follow(next_page, self.parse)
