@@ -38,7 +38,7 @@ class SofifaSpider(scrapy.Spider):
             team_url = player.css("td:nth-child(6) div.ellipsis a::attr(href)").get()
 
             if club_name is None or str.isdecimal(club_name):
-                self.logger.info("Skipping player with no club")
+                # skip fake players or players that do not play in any club
                 continue
 
             item = {
