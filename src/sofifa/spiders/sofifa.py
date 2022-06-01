@@ -35,6 +35,10 @@ class SofifaSpider(scrapy.Spider):
             club_name = player.css("td:nth-child(6) div.ellipsis a::text").get()
             team_url = player.css("td:nth-child(6) div.ellipsis a::attr(href)").get()
 
+            if club_name is None or str.isdecimal(club_name):
+                self.log("Skipping player with no club")
+                continue
+
             item = {
                 "sofifa_id": player.css("td.col-pi::text").get(),
                 "player_url": player.css("td:nth-child(2) a::attr(href)").get(),
