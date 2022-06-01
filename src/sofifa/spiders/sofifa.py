@@ -7,6 +7,8 @@ class SofifaSpider(scrapy.Spider):
     name = "sofifa"
     allowed_domains = ["sofifa.com"]
 
+    teams_cache = dict()
+
     def __init__(self, year="14", remap_columns="True"):
         self.year = year
         self.remap_columns = remap_columns.lower() in ("true", "yes", "y", "1")
@@ -36,7 +38,7 @@ class SofifaSpider(scrapy.Spider):
             team_url = player.css("td:nth-child(6) div.ellipsis a::attr(href)").get()
 
             if club_name is None or str.isdecimal(club_name):
-                self.log("Skipping player with no club")
+                self.logger.info("Skipping player with no club")
                 continue
 
             item = {
@@ -68,8 +70,24 @@ class SofifaSpider(scrapy.Spider):
             yield response.follow(next_page, self.parse)
 
     def parse_team(self, team_url):
-        req = requests.get(SITE_BASE_URL + team_url)
+        if team_url in self.teams_cache.keys():
+            return self.teams_cache[team_url]
+
+        cookies = {"r": YEAR_KEYS[self.year]}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
+        }
+
+        req = requests.get(
+            SITE_BASE_URL + team_url + "?r=" + YEAR_KEYS[self.year],
+            cookies=cookies,
+            headers=headers,
+        )
+
         resp = scrapy.Selector(req)
 
         # the item is something like `English Premier League (1)`
-        return resp.css(".info a::text").get()[:-4]
+        league_name = resp.css(".info a::text").get()[:-4]
+        self.teams_cache[team_url] = league_name
+
+        return league_name
