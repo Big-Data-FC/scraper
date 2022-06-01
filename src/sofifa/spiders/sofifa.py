@@ -1,5 +1,6 @@
 import scrapy
 from .utils import *
+import requests
 
 
 class SofifaSpider(scrapy.Spider):
@@ -31,6 +32,9 @@ class SofifaSpider(scrapy.Spider):
             props_headers = rename_columns(props_headers)
 
         for player in response.css("table.table > tbody > tr"):
+            club_name = player.css("td:nth-child(6) div.ellipsis a::text").get()
+            team_url = player.css("td:nth-child(6) div.ellipsis a::attr(href)").get()
+
             item = {
                 "sofifa_id": player.css("td.col-pi::text").get(),
                 "player_url": player.css("td:nth-child(2) a::attr(href)").get(),
@@ -40,6 +44,7 @@ class SofifaSpider(scrapy.Spider):
                     "td:nth-child(2) img.flag::attr(title)"
                 ).get(),
                 "club_name": player.css("td:nth-child(6) div.ellipsis a::text").get(),
+                "league_name": self.parse_team(team_url),
                 "player_positions": [player.css("td.col-bp a span::text").get()],
             }
 
@@ -57,3 +62,10 @@ class SofifaSpider(scrapy.Spider):
         for next_page in response.css(".pagination a::attr(href)"):
             offset = next_page.get().split("offset=")[1]
             yield response.follow(next_page, self.parse)
+
+    def parse_team(self, team_url):
+        req = requests.get(SITE_BASE_URL + team_url)
+        resp = scrapy.Selector(req)
+
+        # the item is something like `English Premier League (1)`
+        return resp.css(".info a::text").get()[:-4]
