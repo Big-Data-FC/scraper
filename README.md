@@ -2,7 +2,7 @@
 
 This is the custom SoFIFA scraper built for our project of Big Data Computing 2021-22 at Sapienza University of Rome.
 
-By [Daniele Solombrino](@dansolombrino) and [Davide Quaranta](@fortym2).
+By [Daniele Solombrino](https://github.com/dansolombrino) and [Davide Quaranta](https://github.com/davquar).
 
 ## Requirements
 
