@@ -52,6 +52,7 @@ class SofifaSpider(scrapy.Spider):
                 "club_name": player.css("td:nth-child(6) div.ellipsis a::text").get(),
                 "league_name": self.parse_team(team_url),
                 "player_positions": [player.css("td.col-bp a span::text").get()],
+                "potential": player.css("td.col-pt span::text").get()
             }
 
             props_values = []
